@@ -1,0 +1,228 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+static const float test_image_2[81] = {
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.860118,
+    1.000000,
+    0.941903,
+    0.047870,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.388889,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.951198,
+    0.188235,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.075914,
+    0.694445,
+    0.275611,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.412091,
+    0.000000,
+    0.861111,
+    0.221896,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    1.000000,
+    0.710784,
+    0.125163,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000
+};
+
+
+
+typedef struct Matrix{
+	int rows;
+	int columns;
+	float *numbers;
+} Matrix;
+
+Matrix *constructor(int r, int c);
+void destructor(Matrix *m);
+Matrix* create_from_pointer(int r, int c, float * pointer);
+Matrix* add_bias_unit(Matrix* m);
+void print(Matrix *m);
+float relu(float x);
+Matrix * apply_function(Matrix *m, float fun(float));
+Matrix *transpose(Matrix *m);
+float* getAddress(Matrix *m, int i, int j);
+Matrix *multiply(Matrix *m1, Matrix *m2);
+
+float hey[3] = {1.0,2.0,3.0}; 
+float ident[9] = {1.0, 0, 0, 0, 1.0,0,0,0,1.0};
+
+
+int main() {
+    Matrix *m = create_from_pointer(3,1, hey);
+    Matrix *id = create_from_pointer(3,3, ident);
+    print(multiply(id,m));
+    return 0;
+}
+
+Matrix *constructor(int r, int c){
+	unsigned int i;
+	Matrix *m;
+	if(r <= 0 || c <= 0){
+		return NULL;
+	}
+	m = malloc(sizeof(Matrix));
+	m->rows = r;
+	m->columns = c;
+	m->numbers = malloc(sizeof(float)*c*r);
+	for(i = 0; i < c; i++)
+	{
+		for(int j = 0; j < r; j++) {
+			*((m->numbers) + i*c + j)=0;
+		}
+	}
+	return m;
+}
+
+void destructor(Matrix *m){
+	if(m == NULL)
+		return;
+	free(m->numbers);
+	free(m);
+}
+
+void print(Matrix *m){
+	unsigned int i, j;
+	if(m == NULL)
+		return;
+	for(j = 0; j < m->rows; j++){
+		for(i = 0; i < m->columns; i++){
+			printf("%d ", (int) m->numbers[j*m->columns + i]);
+		}
+		printf("\n");
+	}
+}
+
+Matrix* create_from_pointer(int r, int c, float * pointer) {
+    Matrix *m;
+	if(r <= 0 || c <= 0){
+		printf("Give me positive values for dimensions genius\n");
+		return NULL;
+	}
+
+	m = malloc(sizeof(Matrix));
+	m->rows = r;
+	m->columns = c;
+	m->numbers = pointer;
+	return m;
+}
+
+Matrix* add_bias_unit(Matrix* m) {
+    Matrix* retVal = constructor(m->rows, m->columns+1);
+    for(int i = 0; i < m->columns+1; i++) {
+        for(int j = 0; j < m->rows; j++) {
+            if(i==0) {
+                retVal->numbers[j*retVal->columns + i] = 1;
+            }
+            else {
+                retVal->numbers[j*retVal->columns + i] = m->numbers[j*m->columns + i-1];
+            }
+        }
+    }
+	
+    return retVal;
+}
+
+Matrix * apply_function(Matrix *m, float fun(float)) {
+    for(int i = 0; i <m->columns; i++) {
+        for(int j = 0; j<m->rows; j++) {
+            m->numbers[j*m->columns + i]=fun(m->numbers[j*m->columns + i]);
+        }
+    }
+    return m;
+}
+
+float relu(float x) {
+    if(x<=0) {
+        return 0;
+    } else {
+        return x;
+    }
+}
+
+float* getAddress(Matrix* m, int i, int j) { 
+    return &(m->numbers[j*m->columns + i]);
+}
+
+Matrix *multiply(Matrix *m1, Matrix *m2){
+	Matrix *product, *trans;
+	unsigned int i, j;
+	if(m1 == NULL || m2 == NULL)
+		return NULL;
+	if(m1->columns != m2->rows)
+		return NULL;
+
+	product = constructor(m1->rows, m2->columns);
+	for(i = 0; i < product->columns; i++){
+		for(j = 0; j < product->rows; j++){
+            float accumulator = 0;
+            for(int z = 0; z< m1->columns; z++) {
+                accumulator+= (*getAddress(m1,i,z)) * (*getAddress(m2,z,j));
+            }
+			product->numbers[j*product->columns + i] = accumulator;
+		}
+	}
+
+	return product;
+}
