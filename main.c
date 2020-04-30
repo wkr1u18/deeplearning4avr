@@ -2,7 +2,7 @@
 #include <avr/pgmspace.h>
 #include <stdio.h>
 #include "lcd.h"
-#include "yasML.h"
+#include "linAlg.h"
 #include "layers.h"
 
 Matrix* first_layer_weights;
