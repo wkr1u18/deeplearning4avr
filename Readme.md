@@ -1,6 +1,6 @@
 # DeepLearning4Avr
 
-![alt text](https://github.com/wkr1u18/deeplearning4avr/raw/master/image.jpg "Demo of the DeepLearning4Avr")
+![alt text](https://github.com/wkr1u18/deeplearning4avr/raw/master/demo.jpg "Demo of the DeepLearning4Avr")
 
 ## Overview
 
@@ -24,6 +24,7 @@ The `main.c` file contains `predict()` function, which takes a pointer to 81 ele
     Matrix* beforeSecondLayer = add_bias_unit(afterFirstLayer);
     Matrix* afterSecondLayer = multiply(beforeSecondLayer, second_layer_weights);
     retVal = getMax(afterSecondLayer->numbers,10);
+```
 
 ## Demo application
 The demo aplication loads one number from memory, prints the pixels to screen and displays the prediction. The code for displaying uses Klaus-Peter Zauner's and Steve Gunn's library for LaFortuna board display.
