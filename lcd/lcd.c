@@ -15,7 +15,8 @@
 
 lcd display;
 
-void init_lcd() {
+void init_lcd()
+{
     /* Enable extended memory interface with 10 bit addressing */
     XMCRB = _BV(XMM2) | _BV(XMM1);
     XMCRA = _BV(SRE);
@@ -52,14 +53,16 @@ void init_lcd() {
     PORTB |= _BV(BLC);
 }
 
-void lcd_brightness(uint8_t i) {
+void lcd_brightness(uint8_t i)
+{
     /* Configure Timer 2 Fast PWM Mode 3 */
     TCCR2A = _BV(COM2A1) | _BV(WGM21) | _BV(WGM20);
     TCCR2B = _BV(CS20);
     OCR2A = i;
 }
 
-void set_orientation(orientation o) {
+void set_orientation(orientation o)
+{
     display.orient = o;
     write_cmd(MEMORY_ACCESS_CONTROL);
     if (o==North) { 
@@ -92,7 +95,8 @@ void set_orientation(orientation o) {
 
 
 
-void set_frame_rate_hz(uint8_t f) {
+void set_frame_rate_hz(uint8_t f)
+{
     uint8_t diva, rtna, period;
     if (f>118)
         f = 118;
@@ -117,7 +121,8 @@ void set_frame_rate_hz(uint8_t f) {
     write_data(rtna);
 }
 
-void fill_rectangle(rectangle r, uint16_t col) {
+void fill_rectangle(rectangle r, uint16_t col)
+{
     write_cmd(COLUMN_ADDRESS_SET);
     write_data16(r.left);
     write_data16(r.right);
@@ -162,7 +167,8 @@ void fill_rectangle(rectangle r, uint16_t col) {
     }
 }
 
-void fill_rectangle_indexed(rectangle r, uint16_t *col) {
+void fill_rectangle_indexed(rectangle r, uint16_t* col)
+{
     uint16_t x, y;
     write_cmd(COLUMN_ADDRESS_SET);
     write_data16(r.left);
@@ -176,14 +182,16 @@ void fill_rectangle_indexed(rectangle r, uint16_t *col) {
             write_data16(*col++);
 }
 
-void clear_screen() {
+void clear_screen()
+{
     display.x = 0;
     display.y = 0;
     rectangle r = {0, display.width-1, 0, display.height-1};
     fill_rectangle(r, display.background);
 }
 
-void display_char(char c) {
+void display_char(char c)
+{
     uint16_t x, y;
     PGM_P fdata; 
     uint8_t bits, mask;
@@ -220,30 +228,35 @@ void display_char(char c) {
         write_data16(display.background);
 
     display.x += 6;
-    if (display.x + 5 >= display.width) { display.x=0; display.y+=8; }
+    if (display.x >= display.width) { display.x=0; display.y+=8; }
 }
 
-void display_string(char *str) {
+void display_string(char *str)
+{
     uint8_t i;
     for(i=0; str[i]; i++) 
         display_char(str[i]);
 }
 
-void display_move(uint16_t x, uint16_t y) {
-    display.x = x;
-    display.y = y;
-}
-
-void display_color(uint16_t fg, uint16_t bg) {
-	display.foreground = fg;
-	display.background = bg;
-	
-}
-
-void display_string_xy(char *str, uint16_t x, uint16_t y) {
+void display_string_xy(char *str, uint16_t x, uint16_t y)
+{
     uint8_t i;
     display.x = x;
     display.y = y;
     for(i=0; str[i]; i++)
         display_char(str[i]);
 }
+
+void display_register(uint8_t reg)
+{
+	uint8_t i;
+
+	for(i = 0; i < 8; i++) {
+		if((reg & (_BV(7) >> i)) != 0) {
+			display_char( '1' );
+		} else {
+			display_char( '.' );
+		}
+	}
+}
+

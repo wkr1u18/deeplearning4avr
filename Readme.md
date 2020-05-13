@@ -27,5 +27,7 @@ The `main.c` file contains `predict()` function, which takes a pointer to 81 ele
 ```
 
 ## Demo application
-The demo aplication loads one number from memory, prints the pixels to screen and displays the prediction. The code for displaying uses Klaus-Peter Zauner's and Steve Gunn's library for LaFortuna board display.
+The demo aplication loads files from sdcard named 1.txt to 10.txt (they can be found in sdcard directory). Moving the rotary encoder switches between files, and clicking the central button runs the prediction.
+
+
 

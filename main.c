@@ -1,17 +1,30 @@
+#include "os.h"
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include <stdlib.h>
 #include <stdio.h>
-#include "lcd.h"
 #include "linAlg.h"
 #include "layers.h"
 
+
+#define LINE_BUFF_LEN 5
+FIL File;    
+
+int check_switches(int);
+int collect_delta(int state);
+
 Matrix* first_layer_weights;
 Matrix* second_layer_weights;
+
+char files [10][6] = {"1.txt","2.txt","3.txt","4.txt","5.txt","6.txt","7.txt","8.txt","9.txt","10.txt"};
+float newImage[81];
+int index = 0;
 
 void init_ml() {
     first_layer_weights = create_from_pointer(82,20,first_layer);
     second_layer_weights = create_from_pointer(21,10, second_layer);
 }
+int position = 0;
 
 
 int getMax(float * array, uint8_t len) {
@@ -91,11 +104,80 @@ void main(void) {
     CLKPR = (1 << CLKPCE);
     CLKPR = 0;
 
-    init_lcd();
+    
     init_ml();
-    int res = predict(test_image);
-    printf("result is: %d\n",res);
-    display_image(test_image);
+    os_init();
+    printf("Welcome to demo application for DeepLearning4AVR\n");
+    printf("Use rotary encoder to switch between images and central button to run prediction\n");
+    read_image(files[index], newImage);
+    display_image(newImage);
+    f_mount(&FatFs, "", 0);
+    os_add_task( collect_delta,   500, 1);
+    os_add_task( check_switches,  100, 1);
+    sei();
+    for(;;) {
+
+    }
 
 
+}
+
+int collect_delta(int state) {
+    int result = os_enc_delta();
+    if(result!=0) {
+        if(result>0) {
+            index=(index+1)%10;
+        }
+    
+        if(result<0)
+        {
+            index = (10+index-1)%10;
+        }
+        clear_screen();
+        read_image(files[index], newImage);
+        display_image(newImage);
+    }
+   
+	position += result;
+	return state;
+}
+
+int check_switches(int state) {
+
+
+	if (get_switch_long(_BV(SWC))) {
+        int res = predict(newImage);
+        printf("result is: %d\n",res);
+	}
+
+
+
+	return state;
+}
+
+void read_image(char * name, float * destination) {
+    char line[LINE_BUFF_LEN];
+    int8_t i,j;
+    int counter = 0;
+
+    f_mount(&FatFs, "", 0);
+    if (f_open(&File, name, FA_READ) == FR_OK) {
+        i = 0;
+        while (f_gets(line, LINE_BUFF_LEN, &File)) {
+            for( int i = 0; i< LINE_BUFF_LEN; i++) {
+                if(line[i]==',') {
+                    line[i]='\0';
+                    destination[counter] = ((float) atoi(line) / (float) 255.0);
+                    counter++;
+                    break;
+                }
+            }
+            
+         
+
+        }
+
+    } else {
+        display_string("Can't read file! \n");
+    }
 }
