@@ -29,5 +29,6 @@ The `main.c` file contains `predict()` function, which takes a pointer to 81 ele
 ## Demo application
 The demo aplication loads files from sdcard named 1.txt to 10.txt (they can be found in sdcard directory). Moving the rotary encoder switches between files, and clicking the central button runs the prediction.
 
-
+Demo can be seen here:
+[![video](https://img.youtube.com/vi/vCJctw01-vo/0.jpg)](https://www.youtube.com/watch?v=vCJctw01-vo)
 
